@@ -26,9 +26,9 @@ export const Tab2: React.FC = () => {
       </IonHeader>
       <IonContent fullscreen>
         <IonRow>
-          {photos.map((photo, index) => (
-            <IonCol size='6' key={photo.filepath}>
-              <img src={photo.webviewPath} alt={`Photo ${index}`} />
+          {photos.map((photo) => (
+            <IonCol size='6' key={photo.webviewPath}>
+              <img src={photo.webviewPath} alt={`Photo ${photo.filepath}`} />
             </IonCol>
           ))}
         </IonRow>
