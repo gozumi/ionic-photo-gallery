@@ -1,5 +1,7 @@
 {
   "typescript": {
+    "module.sortImportDeclarations": "caseInsensitive",
+    "quoteStyle": "alwaysSingle"
   },
   "json": {
   },
