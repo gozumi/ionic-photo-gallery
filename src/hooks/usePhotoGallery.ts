@@ -1,6 +1,7 @@
 import { Camera, CameraResultType, CameraSource, type Photo } from '@capacitor/camera';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Preferences } from '@capacitor/preferences';
+import { isPlatform } from '@ionic/core';
 import { useEffect, useState } from 'react';
 
 export interface UserPhoto {
@@ -16,14 +17,16 @@ export function usePhotoGallery() {
   useEffect(() => {
     const loadSaved = async () => {
       const { value } = await Preferences.get({ key: PHOTO_STORAGE });
-      const photosInPreferences = (value ? JSON.parse(value) : []) as UserPhoto[];
 
-      for (const photo of photosInPreferences) {
-        const file = await Filesystem.readFile({
-          path: photo.filepath,
-          directory: Directory.Data,
-        });
-        photo.webviewPath = `data:image/jpeg;base64,${file.data}`;
+      const photosInPreferences = (value ? JSON.parse(value) : []) as UserPhoto[];
+      if (!isPlatform('hybrid')) {
+        for (const photo of photosInPreferences) {
+          const file = await Filesystem.readFile({
+            path: photo.filepath,
+            directory: Directory.Data,
+          });
+          photo.webviewPath = `data:image/jpeg;base64,${file.data}`;
+        }
       }
       setPhotos(photosInPreferences);
     };
@@ -53,17 +56,34 @@ export function usePhotoGallery() {
 }
 
 async function savePicture(photo: Photo, fileName: string): Promise<UserPhoto> {
-  const base64Data = await base64FromPath(photo.webPath!);
+  let base64Data: string | Blob;
+
+  if (isPlatform('hybrid')) {
+    const file = await Filesystem.readFile({
+      path: photo.path!,
+    });
+    base64Data = file.data;
+  } else {
+    base64Data = await base64FromPath(photo.webPath!);
+  }
+
   const savedFile = await Filesystem.writeFile({
     path: fileName,
     data: base64Data,
     directory: Directory.Data,
   });
 
-  return {
-    filepath: fileName,
-    webviewPath: photo.webPath,
-  };
+  if (isPlatform('hybrid')) {
+    return {
+      filepath: savedFile.uri,
+      webviewPath: photo.webPath,
+    };
+  } else {
+    return {
+      filepath: fileName,
+      webviewPath: photo.webPath,
+    };
+  }
 }
 
 async function base64FromPath(path: string): Promise<string> {
