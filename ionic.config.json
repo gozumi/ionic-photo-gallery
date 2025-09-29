@@ -1,5 +1,11 @@
 {
   "name": "vite-ionic",
-  "integrations": {},
-  "type": "react"
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom",
+  "build": {
+    "command": "npm run build",
+    "dir": "dist"
+  }
 }
